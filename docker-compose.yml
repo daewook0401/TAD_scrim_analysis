@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    container_name: tad-scrim-analysis
+    ports:
+      - "8000:8000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-127.0.0.1:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_SECURE: ${MINIO_SECURE:-false}
+      IMAGE_ROOT: ${IMAGE_ROOT:-/data/images}
+      MAX_SOURCE_WIDTH: ${MAX_SOURCE_WIDTH:-1400}
+      MIN_CROP_WIDTH: ${MIN_CROP_WIDTH:-1200}
+      MAX_CROP_WIDTH: ${MAX_CROP_WIDTH:-1800}
+      HTTP_TIMEOUT_SECONDS: ${HTTP_TIMEOUT_SECONDS:-60}
+    volumes:
+      - ./sample:/data/images/sample:ro
