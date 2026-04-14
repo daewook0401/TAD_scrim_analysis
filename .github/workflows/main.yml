@@ -1,0 +1,51 @@
+name: Deploy lol_scrim_analysis
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy through jump server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_SECRET_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            ssh -o StrictHostKeyChecking=no ${{ secrets.INNER_USER }}@${{ secrets.INNER_HOST }} << 'EOF'
+              set -e
+
+              mkdir -p /home/daewook/api
+              cd /home/daewook/api
+
+              if [ ! -d "/home/daewook/api/lol_scrim_analysis/.git" ]; then
+                git clone https://github.com/daewook0401/TAD_scrim_analysis.git lol_scrim_analysis
+              fi
+
+              cd /home/daewook/api/lol_scrim_analysis
+              git fetch origin main
+              git reset --hard origin/main
+
+              cat > .env << 'ENVEOF'
+              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+              OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
+              MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+              MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+              MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+              MINIO_SECURE=${{ secrets.MINIO_SECURE }}
+              IMAGE_ROOT=${{ secrets.IMAGE_ROOT }}
+              MAX_SOURCE_WIDTH=${{ secrets.MAX_SOURCE_WIDTH }}
+              MIN_CROP_WIDTH=${{ secrets.MIN_CROP_WIDTH }}
+              MAX_CROP_WIDTH=${{ secrets.MAX_CROP_WIDTH }}
+              HTTP_TIMEOUT_SECONDS=${{ secrets.HTTP_TIMEOUT_SECONDS }}
+              ENVEOF
+
+              docker compose down || true
+              docker compose up -d --build
+              docker image prune -f
+            EOF
