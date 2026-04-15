@@ -16,6 +16,17 @@ League of Legends result screenshots are analyzed with the OpenAI Responses API.
 
 ## API
 
+### `POST /analyze`
+
+Unified JSON endpoint for Spring or any backend caller.
+
+```json
+{
+  "bucket": "tad",
+  "object_key": "11.png"
+}
+```
+
 ### `POST /analyze/object`
 
 ```json
@@ -44,6 +55,16 @@ League of Legends result screenshots are analyzed with the OpenAI Responses API.
 ### `POST /analyze/upload`
 
 Send a multipart request with `file`.
+
+## CLI
+
+This can also be called as a shell-style program.
+
+```bash
+python analyze_cli.py --bucket tad --object-key 11.png
+python analyze_cli.py --image-path sample/11.png
+python analyze_cli.py --image-url "https://example.com/11.png"
+```
 
 ## Response Example
 
@@ -104,6 +125,8 @@ uvicorn app:app --reload
 cp .env.example .env
 docker compose up -d --build
 ```
+
+If MinIO runs in a different Docker Compose stack on the same server, do not leave `MINIO_ENDPOINT` as `127.0.0.1:9000`. Inside the container that points back to the analysis container itself, not the host or the MinIO container. Use the server IP or a reachable DNS name instead, for example `MINIO_ENDPOINT=10.0.0.15:9000`.
 
 ## Notes
 
